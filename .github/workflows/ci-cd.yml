@@ -18,6 +18,9 @@ jobs:
       # 1️⃣ Checkout source code
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          submodules: true
+          fetch-depth: 0
 
       # 2️⃣ Setup .NET SDK
       - name: Setup .NET
@@ -25,19 +28,44 @@ jobs:
         with:
           dotnet-version: '9.0.x'
 
-      # 3️⃣ Restore dependencies (FIXED PATH)
+      # 3️⃣ Restore dependencies with caching
+      - name: Cache NuGet packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
       - name: Restore dependencies
         run: dotnet restore AuthZen.AspNetCore/AuthZen.AspNetCore/AuthZen.AspNetCore.csproj
 
-      # 4️⃣ Build project (FIXED PATH)
+      # 4️⃣ Build
       - name: Build
         run: dotnet build AuthZen.AspNetCore/AuthZen.AspNetCore/AuthZen.AspNetCore.csproj --configuration Release --no-restore
 
-      # 5️⃣ Pack NuGet package (FIXED PATH)
-      - name: Pack NuGet package
-        run: dotnet pack AuthZen.AspNetCore/AuthZen.AspNetCore/AuthZen.AspNetCore.csproj --configuration Release --no-build --output ./nupkg
+      # 5️⃣ Test
+      - name: Run Tests
+        run: dotnet test AuthZen.AspNetCore/AuthZen.AspNetCore/AuthZen.AspNetCore.csproj --no-build --verbosity normal
 
-      # 6️⃣ Publish to NuGet (ONLY when release is published)
+      # 6️⃣ Pack NuGet package with dynamic version
+      - name: Pack NuGet package
+        id: pack
+        run: |
+          # generate version from git tags, fallback to 1.0.0
+          VERSION=$(git describe --tags --always --dirty="-ci" || echo "1.0.0")
+          echo "##[set-output name=version]$VERSION"
+          dotnet pack AuthZen.AspNetCore/AuthZen.AspNetCore/AuthZen.AspNetCore.csproj \
+            --configuration Release \
+            --no-build \
+            --output ./nupkg \
+            /p:PackageVersion=$VERSION
+
+      # 7️⃣ Publish NuGet package (only on release)
       - name: Publish to NuGet
         if: github.event_name == 'release'
-        run: dotnet nuget push ./nupkg/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+        run: |
+          dotnet nuget push ./nupkg/*.nupkg \
+            --api-key ${{ secrets.NUGET_API_KEY }} \
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate
