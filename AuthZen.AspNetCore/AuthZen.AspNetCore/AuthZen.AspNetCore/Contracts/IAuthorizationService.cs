@@ -1,4 +1,4 @@
-﻿namespace AuthZen.AspNetCore.Contracts
+﻿namespace AuthZen.AspNetCore.AuthZen.Contracts
 {
     /// <summary>
     /// Core authorization service using AuthZEN protocol.

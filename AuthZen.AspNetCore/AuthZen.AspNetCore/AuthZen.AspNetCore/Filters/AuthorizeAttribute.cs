@@ -1,4 +1,4 @@
-﻿using AuthZen.AspNetCore.Contracts;
+﻿using AuthZen.AspNetCore.AuthZen.Contracts;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.DependencyInjection;

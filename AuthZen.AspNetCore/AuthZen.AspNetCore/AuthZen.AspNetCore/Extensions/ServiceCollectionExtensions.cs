@@ -1,6 +1,6 @@
 ﻿using AuthZen.AspNetCore.AuthZen.AspNetCore.Configuration;
-using AuthZen.AspNetCore.AuthZen.AspNetCore.Contracts;
 using AuthZen.AspNetCore.AuthZen.AspNetCore.Http;
+using AuthZen.AspNetCore.AuthZen.Contracts;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AuthZen.AspNetCore.AuthZen.AspNetCore.Extensions

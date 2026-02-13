@@ -1,4 +1,4 @@
-﻿using AuthZen.AspNetCore.Contracts;
+﻿using AuthZen.AspNetCore.AuthZen.Contracts;
 using Microsoft.Extensions.Options;
 using System.Net.Http.Json;
 
