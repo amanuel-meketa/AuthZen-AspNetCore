@@ -7,8 +7,6 @@ on:
   pull_request:
     branches:
       - main
-  release:
-    types: [published]
 
 jobs:
   build-pack-publish:
@@ -25,19 +23,21 @@ jobs:
         with:
           dotnet-version: '9.0.x'
 
-      # 3️⃣ Restore dependencies (FIXED PATH)
+      # 3️⃣ Restore dependencies
       - name: Restore dependencies
         run: dotnet restore AuthZen.AspNetCore/AuthZen.AspNetCore/AuthZen.AspNetCore.csproj
 
-      # 4️⃣ Build project (FIXED PATH)
+      # 4️⃣ Build project
       - name: Build
         run: dotnet build AuthZen.AspNetCore/AuthZen.AspNetCore/AuthZen.AspNetCore.csproj --configuration Release --no-restore
 
-      # 5️⃣ Pack NuGet package (FIXED PATH)
+      # 5️⃣ Pack NuGet package with dynamic version
       - name: Pack NuGet package
-        run: dotnet pack AuthZen.AspNetCore/AuthZen.AspNetCore/AuthZen.AspNetCore.csproj --configuration Release --no-build --output ./nupkg
+        run: |
+          VERSION=$(date +'%Y.%m.%d.%H%M%S')
+          echo "Packing version $VERSION"
+          dotnet pack AuthZen.AspNetCore/AuthZen.AspNetCore/AuthZen.AspNetCore.csproj --configuration Release --no-build --output ./nupkg /p:PackageVersion=$VERSION
 
-      # 6️⃣ Publish to NuGet (ONLY when release is published)
+      # 6️⃣ Publish to NuGet
       - name: Publish to NuGet
-        if: github.event_name == 'release'
         run: dotnet nuget push ./nupkg/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
