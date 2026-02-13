@@ -1,17 +1,48 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
+	<PropertyGroup>
+		<!-- Target .NET 9 -->
+		<TargetFramework>net9.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Abstractions" Version="2.3.9" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.3.9" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.3" />
-    <PackageReference Include="Microsoft.Extensions.Options" Version="10.0.3" />
-    <PackageReference Include="System.Net.Http.Json" Version="10.0.3" />
-  </ItemGroup>
+		<!-- NuGet Package Metadata -->
+		<PackageId>AuthZen.AspNetCore</PackageId>
+		<Version>1.0.0</Version>
+		<Authors>ATman</Authors>
+		<Company>Debelo Software</Company>
+		<Product>AuthZen.AspNetCore</Product>
+		<Description>Lightweight fine-grained authorization library for ASP.NET Core using the AuthZen protocol.</Description>
+		<PackageTags>Authorization;ASP.NET Core;FGA;AuthZen;Microservices;Security</PackageTags>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+
+		<!-- Repository -->
+		<RepositoryUrl>https://github.com/amanuel-meketa/AuthZen-AspNetCore</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+
+		<!-- Project / Package URLs -->
+		<RepositoryUrl>https://github.com/amanuel-meketa/AuthZen-AspNetCore</RepositoryUrl>
+
+		<!-- Release Notes -->
+		<PackageReleaseNotes>Initial release of AuthZen.AspNetCore library with HTTP client, authorization attribute, DI extension, and options support.</PackageReleaseNotes>
+
+		<!-- Build -->
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<!-- Required dependencies -->
+		<PackageReference Include="Microsoft.AspNetCore.Mvc.Abstractions" Version="2.3.9" />
+		<PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.3.9" />
+		<PackageReference Include="Microsoft.Extensions.Http" Version="10.0.3" />
+		<PackageReference Include="Microsoft.Extensions.Options" Version="10.0.3" />
+		<PackageReference Include="System.Net.Http.Json" Version="10.0.3" />
+	</ItemGroup>
 
 </Project>
+
+
+
