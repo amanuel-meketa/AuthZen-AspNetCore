@@ -1,0 +1,49 @@
+name: AuthZen.AspNetCore CI/CD
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  release:
+    types: [published]
+
+jobs:
+  build-pack-publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1️⃣ Checkout source code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2️⃣ Setup .NET SDK (Required for .NET 9 projects)
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      # 3️⃣ Restore dependencies
+      - name: Restore dependencies
+        run: dotnet restore
+
+      # 4️⃣ Build project in Release mode
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+
+      # 5️⃣ Pack NuGet package
+      - name: Pack NuGet package
+        run: dotnet pack ./AuthZen.AspNetCore/AuthZen.AspNetCore.csproj \
+             --configuration Release \
+             --no-build \
+             --output ./nupkg
+
+      # 6️⃣ Publish to NuGet (ONLY when release is published)
+      - name: Publish to NuGet
+        if: github.event_name == 'release'
+        run: dotnet nuget push ./nupkg/*.nupkg \
+             --api-key ${{ secrets.NUGET_API_KEY }} \
+             --source https://api.nuget.org/v3/index.json \
+             --skip-duplicate
