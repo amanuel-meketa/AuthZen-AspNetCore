@@ -21,16 +21,14 @@
 		<RepositoryUrl>https://github.com/amanuel-meketa/AuthZen-AspNetCore</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
 
-		<!-- Project / Package URLs -->
-		<RepositoryUrl>https://github.com/amanuel-meketa/AuthZen-AspNetCore</RepositoryUrl>
-
 		<!-- Release Notes -->
 		<PackageReleaseNotes>Initial release of AuthZen.AspNetCore library with HTTP client, authorization attribute, DI extension, and options support.</PackageReleaseNotes>
 
-		<!-- Build -->
+		<!-- Build & Package -->
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<IncludeSymbols>true</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+		<IncludeSource>true</IncludeSource>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -43,6 +41,3 @@
 	</ItemGroup>
 
 </Project>
-
-
-
