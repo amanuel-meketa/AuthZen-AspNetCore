@@ -37,7 +37,6 @@
 		<PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.3.9" />
 		<PackageReference Include="Microsoft.Extensions.Http" Version="10.0.3" />
 		<PackageReference Include="Microsoft.Extensions.Options" Version="10.0.3" />
-		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.16.0" />
 		<PackageReference Include="System.Net.Http.Json" Version="10.0.3" />
 	</ItemGroup>
 
