@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.DependencyInjection;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace AuthZen.AspNetCore.Filters
 {
@@ -13,13 +14,6 @@ namespace AuthZen.AspNetCore.Filters
         private readonly string? _resourceId;
         private readonly string? _subjectId;
 
-        /// <summary>
-        /// Protects an endpoint using AuthZEN protocol.
-        /// </summary>
-        /// <param name="action">The action/relation to check, e.g., "view", "edit".</param>
-        /// <param name="resourceType">Optional resource type override.</param>
-        /// <param name="resourceId">Optional resource ID override.</param>
-        /// <param name="subjectId">Optional subject override (otherwise uses authenticated user).</param>
         public AuthorizeAttribute(string action, string? resourceType = null, string? resourceId = null, string? subjectId = null)
         {
             _action = action;
@@ -32,19 +26,37 @@ namespace AuthZen.AspNetCore.Filters
         {
             var authService = context.HttpContext.RequestServices.GetRequiredService<IAuthorizationService>();
 
-            // Determine subject
-            var subjectId = _subjectId ?? context.HttpContext.User?.Identity?.Name;
+            string? subjectId = _subjectId;
+
+            if (string.IsNullOrEmpty(subjectId))
+            {
+                // Dev mode: header override
+                subjectId = context.HttpContext.Request.Headers["X-User-Id"].FirstOrDefault();
+            }
+
+            if (string.IsNullOrEmpty(subjectId))
+            {
+                // Production: extract from Bearer token
+                var authHeader = context.HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+                if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer "))
+                {
+                    var token = authHeader.Substring("Bearer ".Length).Trim();
+                    var handler = new JwtSecurityTokenHandler();
+                    var jwt = handler.ReadJwtToken(token);
+
+                    subjectId = jwt.Claims.FirstOrDefault(c => c.Type == "sub")?.Value;
+                }
+            }
+
             if (string.IsNullOrEmpty(subjectId))
             {
                 context.Result = new UnauthorizedResult();
                 return;
             }
 
-            // Determine resource
             var resourceType = _resourceType ?? "DefaultResource";
             var resourceId = _resourceId ?? "DefaultId";
 
-            // Construct AuthZEN request
             var checkRequest = new CheckAccessDto
             {
                 Subject = new SubjectDto { Id = subjectId, Type = "user" },
@@ -52,7 +64,6 @@ namespace AuthZen.AspNetCore.Filters
                 Action = _action
             };
 
-            // Perform AuthZEN check
             AuthZenDecisionResponseDto decision;
             try
             {
@@ -60,18 +71,21 @@ namespace AuthZen.AspNetCore.Filters
             }
             catch
             {
-                // If the service fails, default deny
-                context.Result = new ForbidResult();
+                context.Result = new ObjectResult(new AuthZenDecisionResponseDto
+                {
+                    Decision = "deny",
+                    Reason = "AuthZEN service unreachable"
+                })
+                { StatusCode = 403 };
                 return;
             }
 
             if (!string.Equals(decision.Decision, "allow", StringComparison.OrdinalIgnoreCase))
             {
-                context.Result = new ForbidResult();
+                context.Result = new ObjectResult(decision) { StatusCode = 403 };
                 return;
             }
 
-            // Continue pipeline
             await next();
         }
     }
