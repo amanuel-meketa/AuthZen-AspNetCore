@@ -1,6 +1,6 @@
 ﻿using AuthZen.AspNetCore.AuthZen.AspNetCore.Attributes;
+using AuthZen.AspNetCore.AuthZen.AspNetCore.Enums;
 using AuthZen.AspNetCore.AuthZen.Contracts;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using static AuthZen.AspNetCore.AuthZen.Contracts.IAuthorizationService;
@@ -31,27 +31,32 @@ namespace AuthZen.AspNetCore.AuthZen.AspNetCore.Filters
                 return;
             }
 
-            // Get userId: use attribute.UserId if provided, else fallback to claim
-            var userId = !string.IsNullOrWhiteSpace(attribute.UserId) ? attribute.UserId : context.HttpContext.User?.FindFirst("sub")?.Value;
+            // Determine userId: controller attribute takes priority, else fallback to claim
+            var userId = !string.IsNullOrWhiteSpace(attribute.UserId)
+                            ? attribute.UserId
+                            : context.HttpContext.User?.FindFirst("sub")?.Value;
 
             if (string.IsNullOrWhiteSpace(userId))
             {
                 context.Result = new ObjectResult(new { reason = "User not authenticated" })
                 {
-                    StatusCode = StatusCodes.Status401Unauthorized
+                    StatusCode = 401
                 };
                 return;
             }
 
-            // Get resourceId: use attribute.ResourceId if provided, else look for action argument
-            var resourceId = !string.IsNullOrWhiteSpace(attribute.ResourceId) ? attribute.ResourceId
-                                : context.ActionArguments.TryGetValue("resourceId", out var ridObj) && ridObj is not null ? ridObj.ToString()! : null;
+            // Determine resourceId: attribute takes priority, else from action argument
+            var resourceId = !string.IsNullOrWhiteSpace(attribute.ResourceId)
+                                ? attribute.ResourceId
+                                : context.ActionArguments.TryGetValue("resourceId", out var ridObj) && ridObj is not null
+                                    ? ridObj.ToString()!
+                                    : null;
 
             if (string.IsNullOrWhiteSpace(resourceId))
             {
                 context.Result = new ObjectResult(new { reason = "ResourceId must be provided either via attribute or action argument." })
                 {
-                    StatusCode = StatusCodes.Status400BadRequest
+                    StatusCode = 400
                 };
                 return;
             }
@@ -68,14 +73,15 @@ namespace AuthZen.AspNetCore.AuthZen.AspNetCore.Filters
 
             if (!string.Equals(decision.Decision, "allow", StringComparison.OrdinalIgnoreCase))
             {
-                // Return the PDP response directly with 403
+                // Denied → respond with PDP response and 403
                 context.Result = new ObjectResult(decision)
                 {
-                    StatusCode = StatusCodes.Status403Forbidden
+                    StatusCode = 403
                 };
                 return;
             }
 
+            // Allowed → continue to controller
             await next();
         }
 
