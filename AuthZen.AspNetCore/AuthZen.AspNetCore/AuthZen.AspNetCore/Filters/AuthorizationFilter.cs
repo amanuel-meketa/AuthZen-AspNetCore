@@ -1,4 +1,5 @@
 ﻿using AuthZen.AspNetCore.AuthZen.AspNetCore.Attributes;
+using AuthZen.AspNetCore.AuthZen.AspNetCore.Enums;
 using AuthZen.AspNetCore.AuthZen.Contracts;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
@@ -19,10 +20,12 @@ namespace AuthZen.AspNetCore.AuthZen.AspNetCore.Filters
 
         public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
         {
-            // Get the AuthorizeResourceAttribute from action or controller
+            // Get AuthorizeResourceAttribute from action or controller
             var methodInfo = (context.ActionDescriptor as Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor)?.MethodInfo;
-            var attribute = methodInfo?.GetCustomAttributes(typeof(AuthorizeResourceAttribute), true).FirstOrDefault() as AuthorizeResourceAttribute
-                            ?? context.Controller.GetType().GetCustomAttributes(typeof(AuthorizeResourceAttribute), true).FirstOrDefault() as AuthorizeResourceAttribute;
+            var attribute = methodInfo?.GetCustomAttributes(typeof(AuthorizeResourceAttribute), true)
+                            .FirstOrDefault() as AuthorizeResourceAttribute
+                            ?? context.Controller.GetType().GetCustomAttributes(typeof(AuthorizeResourceAttribute), true)
+                            .FirstOrDefault() as AuthorizeResourceAttribute;
 
             if (attribute is null)
             {
@@ -30,10 +33,10 @@ namespace AuthZen.AspNetCore.AuthZen.AspNetCore.Filters
                 return;
             }
 
-            // Determine userId: controller attribute takes priority, else fallback to claim
+            // Determine userId: attribute.UserId first, then claim
             var userId = !string.IsNullOrWhiteSpace(attribute.UserId)
-                            ? attribute.UserId
-                            : context.HttpContext.User?.FindFirst("sub")?.Value;
+                ? attribute.UserId
+                : context.HttpContext.User?.FindFirst("sub")?.Value;
 
             if (string.IsNullOrWhiteSpace(userId))
             {
@@ -44,20 +47,18 @@ namespace AuthZen.AspNetCore.AuthZen.AspNetCore.Filters
                 return;
             }
 
-            // Determine resourceId: attribute takes priority, else from action argument
-            var resourceId = !string.IsNullOrWhiteSpace(attribute.ResourceId) ? attribute.ResourceId
-                                : context.ActionArguments.TryGetValue("resourceId", out var ridObj) && ridObj is not null ? ridObj.ToString()!: null;
+            // Determine resourceId: attribute.ResourceId first, then action argument
+            var resourceId = !string.IsNullOrWhiteSpace(attribute.ResourceId)
+                ? attribute.ResourceId
+                : context.ActionArguments.TryGetValue("resourceId", out var ridObj) && ridObj is not null ? ridObj.ToString()! : null;
 
             if (string.IsNullOrWhiteSpace(resourceId))
             {
-                context.Result = new ObjectResult(new { reason = "ResourceId must be provided either via attribute or action argument." })
-                {
-                    StatusCode = 400
-                };
+                context.Result = new BadRequestObjectResult(new { reason = "ResourceId must be provided either via attribute or action argument." });
                 return;
             }
 
-            // Build check request
+            // Build PDP request
             var checkRequest = new CheckAccessDto
             {
                 Subject = new SubjectDto { Id = userId, Type = "user" },
@@ -67,9 +68,9 @@ namespace AuthZen.AspNetCore.AuthZen.AspNetCore.Filters
 
             var decision = await _authService.CheckAccessAsync(checkRequest);
 
+            // Deny → return PDP response with 403
             if (!string.Equals(decision.Decision, "allow", StringComparison.OrdinalIgnoreCase))
             {
-                // Denied → respond with PDP response and 403
                 context.Result = new ObjectResult(decision)
                 {
                     StatusCode = 403
@@ -77,7 +78,7 @@ namespace AuthZen.AspNetCore.AuthZen.AspNetCore.Filters
                 return;
             }
 
-            // Allowed → continue to controller
+            // Allowed → proceed
             await next();
         }
 
