@@ -1,5 +1,4 @@
 ﻿using AuthZen.AspNetCore.AuthZen.AspNetCore.Attributes;
-using AuthZen.AspNetCore.AuthZen.AspNetCore.Enums;
 using AuthZen.AspNetCore.AuthZen.Contracts;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
@@ -46,11 +45,8 @@ namespace AuthZen.AspNetCore.AuthZen.AspNetCore.Filters
             }
 
             // Determine resourceId: attribute takes priority, else from action argument
-            var resourceId = !string.IsNullOrWhiteSpace(attribute.ResourceId)
-                                ? attribute.ResourceId
-                                : context.ActionArguments.TryGetValue("resourceId", out var ridObj) && ridObj is not null
-                                    ? ridObj.ToString()!
-                                    : null;
+            var resourceId = !string.IsNullOrWhiteSpace(attribute.ResourceId) ? attribute.ResourceId
+                                : context.ActionArguments.TryGetValue("resourceId", out var ridObj) && ridObj is not null ? ridObj.ToString()!: null;
 
             if (string.IsNullOrWhiteSpace(resourceId))
             {
