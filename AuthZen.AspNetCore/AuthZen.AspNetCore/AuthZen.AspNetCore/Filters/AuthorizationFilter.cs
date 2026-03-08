@@ -1,6 +1,6 @@
 ﻿using AuthZen.AspNetCore.AuthZen.AspNetCore.Attributes;
-using AuthZen.AspNetCore.AuthZen.AspNetCore.Enums;
 using AuthZen.AspNetCore.AuthZen.Contracts;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using static AuthZen.AspNetCore.AuthZen.Contracts.IAuthorizationService;
@@ -32,13 +32,14 @@ namespace AuthZen.AspNetCore.AuthZen.AspNetCore.Filters
             }
 
             // Get userId: use attribute.UserId if provided, else fallback to claim
-            var userId = !string.IsNullOrWhiteSpace(attribute.UserId)
-                            ? attribute.UserId
-                            : context.HttpContext.User?.FindFirst("sub")?.Value;
+            var userId = !string.IsNullOrWhiteSpace(attribute.UserId) ? attribute.UserId : context.HttpContext.User?.FindFirst("sub")?.Value;
 
             if (string.IsNullOrWhiteSpace(userId))
             {
-                context.Result = new UnauthorizedResult();
+                context.Result = new ObjectResult(new { reason = "User not authenticated" })
+                {
+                    StatusCode = StatusCodes.Status401Unauthorized
+                };
                 return;
             }
 
@@ -48,7 +49,10 @@ namespace AuthZen.AspNetCore.AuthZen.AspNetCore.Filters
 
             if (string.IsNullOrWhiteSpace(resourceId))
             {
-                context.Result = new BadRequestObjectResult("ResourceId must be provided either via attribute or action argument.");
+                context.Result = new ObjectResult(new { reason = "ResourceId must be provided either via attribute or action argument." })
+                {
+                    StatusCode = StatusCodes.Status400BadRequest
+                };
                 return;
             }
 
@@ -64,7 +68,11 @@ namespace AuthZen.AspNetCore.AuthZen.AspNetCore.Filters
 
             if (!string.Equals(decision.Decision, "allow", StringComparison.OrdinalIgnoreCase))
             {
-                context.Result = new ForbidResult();
+                // Return the PDP response directly with 403
+                context.Result = new ObjectResult(decision)
+                {
+                    StatusCode = StatusCodes.Status403Forbidden
+                };
                 return;
             }
 
