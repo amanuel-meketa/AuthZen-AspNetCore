@@ -10,7 +10,7 @@ namespace AuthZen.AspNetCore.AuthZen.AspNetCore.Service
 
         public AuthorizationService(HttpClient http)
         {
-            _http = http;
+            _http = http ?? throw new ArgumentNullException(nameof(http));
         }
 
         public async Task<AuthZenDecisionResponseDto> CheckAccessAsync(CheckAccessDto check)
@@ -26,7 +26,8 @@ namespace AuthZen.AspNetCore.AuthZen.AspNetCore.Service
 
             try
             {
-                var response = await _http.PostAsJsonAsync("/check-access", request);
+                // Use the full URL already set in HttpClient.BaseAddress or passed in configuration
+                var response = await _http.PostAsJsonAsync(string.Empty, request);
 
                 if (!response.IsSuccessStatusCode)
                 {
