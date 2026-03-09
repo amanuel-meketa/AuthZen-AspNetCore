@@ -21,13 +21,13 @@ namespace AuthZen.AspNetCore.AuthZen.AspNetCore.Service
             var request = new
             {
                 subject = new { id = check.Subject.Id, type = check.Subject.Type },
+                resource = new { id = check.Resource.Id, type = check.Resource.Type },
                 action = check.Action,
-                resource = new { id = check.Resource.Id, type = check.Resource.Type }
             };
 
             try
             {
-                var response = await _http.PostAsJsonAsync("/api/access/check", request);
+                var response = await _http.PostAsJsonAsync("api/access/check", request);
 
                 if (!response.IsSuccessStatusCode)
                 {
