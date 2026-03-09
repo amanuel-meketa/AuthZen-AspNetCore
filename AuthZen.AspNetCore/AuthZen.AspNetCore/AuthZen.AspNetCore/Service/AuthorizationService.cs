@@ -15,7 +15,8 @@ namespace AuthZen.AspNetCore.AuthZen.AspNetCore.Service
 
         public async Task<AuthZenDecisionResponseDto> CheckAccessAsync(CheckAccessDto check)
         {
-            if (check == null) throw new ArgumentNullException(nameof(check));
+            if (_http.BaseAddress == null)
+                throw new InvalidOperationException("AuthZEN BaseAddress is not configured.");
 
             var request = new
             {
@@ -26,8 +27,7 @@ namespace AuthZen.AspNetCore.AuthZen.AspNetCore.Service
 
             try
             {
-                // Use the full URL already set in HttpClient.BaseAddress or passed in configuration
-                var response = await _http.PostAsJsonAsync("api/access/check", request);
+                var response = await _http.PostAsJsonAsync("/api/access/check", request);
 
                 if (!response.IsSuccessStatusCode)
                 {
@@ -44,8 +44,8 @@ namespace AuthZen.AspNetCore.AuthZen.AspNetCore.Service
                 {
                     Decision = result?.Decision ?? "deny",
                     Reason = result?.Reason,
-                    Obligations = result?.Obligations ?? new List<object>(),
-                    Advice = result?.Advice ?? new List<object>()
+                    Obligations = result?.Obligations ?? new(),
+                    Advice = result?.Advice ?? new()
                 };
             }
             catch (Exception ex)

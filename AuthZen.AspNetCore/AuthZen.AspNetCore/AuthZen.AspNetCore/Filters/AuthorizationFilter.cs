@@ -14,61 +14,52 @@ namespace AuthZen.AspNetCore.AuthZen.AspNetCore.Filters
 
         public AuthorizationFilter(IAuthorizationService authService)
         {
-            ArgumentNullException.ThrowIfNull(authService);
-            _authService = authService;
+            _authService = authService ?? throw new ArgumentNullException(nameof(authService));
         }
 
         public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
         {
-            // Get AuthorizeResourceAttribute from action or controller
+            // Get AuthorizeResourceAttribute
             var methodInfo = (context.ActionDescriptor as Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor)?.MethodInfo;
             var attribute = methodInfo?.GetCustomAttributes(typeof(AuthorizeResourceAttribute), true)
-                            .FirstOrDefault() as AuthorizeResourceAttribute
-                            ?? context.Controller.GetType().GetCustomAttributes(typeof(AuthorizeResourceAttribute), true)
                             .FirstOrDefault() as AuthorizeResourceAttribute;
 
-            if (attribute is null)
+            if (attribute == null)
             {
-                await next(); // No attribute → allow
+                await next();
                 return;
             }
 
-            // Determine userId: attribute.UserId first, then claim
-            var userId = !string.IsNullOrWhiteSpace(attribute.UserId)
-                ? attribute.UserId
-                : context.HttpContext.User?.FindFirst("sub")?.Value;
+            // ONLY get userId and resourceId from action arguments
+            var userId = context.ActionArguments.TryGetValue("userId", out var uidObj) ? uidObj?.ToString() : null;
+            var resourceId = context.ActionArguments.TryGetValue("resourceId", out var ridObj) ? ridObj?.ToString() : null;
 
-            if (string.IsNullOrWhiteSpace(userId))
+            if (string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(resourceId))
             {
-                context.Result = new ObjectResult(new { reason = "User not authenticated" })
+                context.Result = new BadRequestObjectResult(new
                 {
-                    StatusCode = 401
-                };
+                    reason = "Both userId and resourceId must be provided in action arguments."
+                });
                 return;
             }
 
-            // Determine resourceId: attribute.ResourceId first, then action argument
-            var resourceId = !string.IsNullOrWhiteSpace(attribute.ResourceId)
-                ? attribute.ResourceId
-                : context.ActionArguments.TryGetValue("resourceId", out var ridObj) && ridObj is not null ? ridObj.ToString()! : null;
-
-            if (string.IsNullOrWhiteSpace(resourceId))
-            {
-                context.Result = new BadRequestObjectResult(new { reason = "ResourceId must be provided either via attribute or action argument." });
-                return;
-            }
-
-            // Build PDP request
             var checkRequest = new CheckAccessDto
             {
-                Subject = new SubjectDto { Id = userId, Type = "user" },
-                Resource = new ResourceDto { Id = resourceId, Type = attribute.ResourceType.ToString() },
+                Subject = new SubjectDto
+                {
+                    Id = userId,
+                    Type = "user"
+                },
+                Resource = new ResourceDto
+                {
+                    Id = resourceId,
+                    Type = attribute.ResourceType.ToString()
+                },
                 Action = MapAction(attribute.Action)
             };
 
             var decision = await _authService.CheckAccessAsync(checkRequest);
 
-            // Deny → return PDP response with 403
             if (!string.Equals(decision.Decision, "allow", StringComparison.OrdinalIgnoreCase))
             {
                 context.Result = new ObjectResult(decision)
@@ -78,7 +69,6 @@ namespace AuthZen.AspNetCore.AuthZen.AspNetCore.Filters
                 return;
             }
 
-            // Allowed → proceed
             await next();
         }
 
@@ -91,7 +81,7 @@ namespace AuthZen.AspNetCore.AuthZen.AspNetCore.Filters
             Action.Assign => "can_assign",
             Action.Unassign => "can_unassign",
             Action.Start => "can_start",
-            _ => throw new ArgumentOutOfRangeException(nameof(action), "Unknown action")
+            _ => throw new ArgumentOutOfRangeException(nameof(action))
         };
     }
 }
