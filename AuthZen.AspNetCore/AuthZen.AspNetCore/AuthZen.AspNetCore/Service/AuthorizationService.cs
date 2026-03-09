@@ -22,12 +22,12 @@ namespace AuthZen.AspNetCore.AuthZen.AspNetCore.Service
             {
                 subject = new { id = check.Subject.Id, type = check.Subject.Type },
                 resource = new { id = check.Resource.Id, type = check.Resource.Type },
-                action = check.Action,
+                action = check.Action
             };
 
             try
             {
-                var response = await _http.PostAsJsonAsync("api/access/check", request);
+                var response = await _http.PostAsJsonAsync("", request);
 
                 if (!response.IsSuccessStatusCode)
                 {
