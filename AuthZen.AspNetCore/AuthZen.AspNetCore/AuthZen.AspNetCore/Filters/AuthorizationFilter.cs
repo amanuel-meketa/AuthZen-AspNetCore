@@ -21,8 +21,7 @@ namespace AuthZen.AspNetCore.AuthZen.AspNetCore.Filters
         {
             // Get AuthorizeResourceAttribute
             var methodInfo = (context.ActionDescriptor as Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor)?.MethodInfo;
-            var attribute = methodInfo?.GetCustomAttributes(typeof(AuthorizeResourceAttribute), true)
-                            .FirstOrDefault() as AuthorizeResourceAttribute;
+            var attribute = methodInfo?.GetCustomAttributes(typeof(AuthorizeResourceAttribute), true).FirstOrDefault() as AuthorizeResourceAttribute;
 
             if (attribute == null)
             {
@@ -31,8 +30,8 @@ namespace AuthZen.AspNetCore.AuthZen.AspNetCore.Filters
             }
 
             // ONLY get userId and resourceId from action arguments
-            var userId = context.ActionArguments.TryGetValue("userId", out var uidObj) ? uidObj?.ToString() : null;
-            var resourceId = context.ActionArguments.TryGetValue("resourceId", out var ridObj) ? ridObj?.ToString() : null;
+            var userId = context.ActionArguments.TryGetValue("userId", out var uidObj) ? uidObj?.ToString() : attribute.UserId;
+            var resourceId = context.ActionArguments.TryGetValue("resourceId", out var ridObj) ? ridObj?.ToString() : attribute.ResourceId;
 
             if (string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(resourceId))
             {
