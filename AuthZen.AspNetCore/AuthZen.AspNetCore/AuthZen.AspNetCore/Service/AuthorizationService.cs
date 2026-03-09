@@ -27,7 +27,7 @@ namespace AuthZen.AspNetCore.AuthZen.AspNetCore.Service
             try
             {
                 // Use the full URL already set in HttpClient.BaseAddress or passed in configuration
-                var response = await _http.PostAsJsonAsync(string.Empty, request);
+                var response = await _http.PostAsJsonAsync("api/access/check", request);
 
                 if (!response.IsSuccessStatusCode)
                 {
