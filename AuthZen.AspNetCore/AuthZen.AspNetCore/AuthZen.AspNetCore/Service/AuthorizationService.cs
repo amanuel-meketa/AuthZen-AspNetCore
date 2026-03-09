@@ -27,7 +27,8 @@ namespace AuthZen.AspNetCore.AuthZen.AspNetCore.Service
 
             try
             {
-                var response = await _http.PostAsJsonAsync("", request);
+                // Post to endpoint relative to BaseAddress
+                var response = await _http.PostAsJsonAsync("/api/access/check", request);
 
                 if (!response.IsSuccessStatusCode)
                 {

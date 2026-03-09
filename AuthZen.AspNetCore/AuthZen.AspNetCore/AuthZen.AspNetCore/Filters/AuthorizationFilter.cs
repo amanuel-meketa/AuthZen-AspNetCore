@@ -19,7 +19,6 @@ namespace AuthZen.AspNetCore.AuthZen.AspNetCore.Filters
 
         public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
         {
-            // Get AuthorizeResourceAttribute
             var methodInfo = (context.ActionDescriptor as Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor)?.MethodInfo;
             var attribute = methodInfo?.GetCustomAttributes(typeof(AuthorizeResourceAttribute), true).FirstOrDefault() as AuthorizeResourceAttribute;
 
@@ -29,7 +28,7 @@ namespace AuthZen.AspNetCore.AuthZen.AspNetCore.Filters
                 return;
             }
 
-            // ONLY get userId and resourceId from action arguments
+            // Use attribute values if action arguments are not provided
             var userId = context.ActionArguments.TryGetValue("userId", out var uidObj) ? uidObj?.ToString() : attribute.UserId;
             var resourceId = context.ActionArguments.TryGetValue("resourceId", out var ridObj) ? ridObj?.ToString() : attribute.ResourceId;
 
@@ -37,23 +36,15 @@ namespace AuthZen.AspNetCore.AuthZen.AspNetCore.Filters
             {
                 context.Result = new BadRequestObjectResult(new
                 {
-                    reason = "Both userId and resourceId must be provided in action arguments."
+                    reason = "Both userId and resourceId must be provided in action arguments or attribute."
                 });
                 return;
             }
 
             var checkRequest = new CheckAccessDto
             {
-                Subject = new SubjectDto
-                {
-                    Id = userId,
-                    Type = "user"
-                },
-                Resource = new ResourceDto
-                {
-                    Id = resourceId,
-                    Type = attribute.ResourceType.ToString()
-                },
+                Subject = new SubjectDto { Id = userId, Type = "user" },
+                Resource = new ResourceDto { Id = resourceId, Type = attribute.ResourceType.ToString() },
                 Action = MapAction(attribute.Action)
             };
 
@@ -61,10 +52,7 @@ namespace AuthZen.AspNetCore.AuthZen.AspNetCore.Filters
 
             if (!string.Equals(decision.Decision, "allow", StringComparison.OrdinalIgnoreCase))
             {
-                context.Result = new ObjectResult(decision)
-                {
-                    StatusCode = 403
-                };
+                context.Result = new ObjectResult(decision) { StatusCode = 403 };
                 return;
             }
 

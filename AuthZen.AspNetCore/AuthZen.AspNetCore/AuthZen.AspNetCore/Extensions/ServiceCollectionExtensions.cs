@@ -20,7 +20,7 @@ namespace AuthZen.AspNetCore.AuthZen.AspNetCore.Extensions
                 if (string.IsNullOrWhiteSpace(options.Url))
                     throw new InvalidOperationException("AuthorizationService BaseUrl must be configured.");
 
-                client.BaseAddress = new Uri(options.Url);
+                client.BaseAddress = new Uri(options.Url); // host only
                 client.Timeout = TimeSpan.FromSeconds(5);
             });
 
