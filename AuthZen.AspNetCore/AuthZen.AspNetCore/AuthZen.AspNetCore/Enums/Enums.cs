@@ -6,6 +6,7 @@
         Update,
         Delete,
         View,
+        ViewAll,
         Assign,
         Unassign,
         Start
