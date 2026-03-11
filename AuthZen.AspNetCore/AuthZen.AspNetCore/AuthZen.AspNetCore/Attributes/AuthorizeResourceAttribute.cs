@@ -9,14 +9,10 @@ namespace AuthZen.AspNetCore.AuthZen.AspNetCore.Attributes
         public Resource ResourceType { get; }
         public Action Action { get; }
 
-        /// <summary>
-        /// Optional hardcoded userId for this action/controller.
-        /// </summary>
+        /// <summary>Optional hardcoded userId.</summary>
         public string? UserId { get; set; }
 
-        /// <summary>
-        /// Optional hardcoded resourceId for this action/controller.
-        /// </summary>
+        /// <summary>Optional hardcoded resourceId.</summary>
         public string? ResourceId { get; set; }
 
         public AuthorizeResourceAttribute(Resource resourceType, Action action)

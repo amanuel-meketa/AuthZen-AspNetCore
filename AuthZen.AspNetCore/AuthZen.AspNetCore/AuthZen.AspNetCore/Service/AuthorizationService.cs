@@ -1,16 +1,19 @@
 ﻿using AuthZen.AspNetCore.AuthZen.Contracts;
+using Microsoft.Extensions.Logging;
 using System.Net.Http.Json;
 using static AuthZen.AspNetCore.AuthZen.Contracts.IAuthorizationService;
 
-namespace AuthZen.AspNetCore.AuthZen.AspNetCore.Service
+namespace AuthZen.AspNetCore.Service
 {
-    public class AuthorizationService : IAuthorizationService
+    public sealed class AuthorizationService : IAuthorizationService
     {
         private readonly HttpClient _http;
+        private readonly ILogger<AuthorizationService> _logger;
 
-        public AuthorizationService(HttpClient http)
+        public AuthorizationService(HttpClient http, ILogger<AuthorizationService> logger)
         {
             _http = http ?? throw new ArgumentNullException(nameof(http));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public async Task<AuthZenDecisionResponseDto> CheckAccessAsync(CheckAccessDto check)
@@ -27,15 +30,17 @@ namespace AuthZen.AspNetCore.AuthZen.AspNetCore.Service
 
             try
             {
-                // Post to endpoint relative to BaseAddress
                 var response = await _http.PostAsJsonAsync("/api/access/verify", request);
 
                 if (!response.IsSuccessStatusCode)
                 {
+                    _logger.LogWarning("AuthZen returned non-success status {Status} for user {UserId}",
+                        response.StatusCode, check.Subject.Id);
+
                     return new AuthZenDecisionResponseDto
                     {
                         Decision = "deny",
-                        Reason = $"AuthZEN returned status {response.StatusCode}"
+                        Reason = $"AuthZen returned status {response.StatusCode}"
                     };
                 }
 
@@ -51,15 +56,16 @@ namespace AuthZen.AspNetCore.AuthZen.AspNetCore.Service
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "AuthZen request failed for user {UserId}", check.Subject.Id);
                 return new AuthZenDecisionResponseDto
                 {
                     Decision = "deny",
-                    Reason = $"AuthZEN request failed: {ex.Message}"
+                    Reason = $"AuthZen request failed: {ex.Message}"
                 };
             }
         }
 
-        private class AuthZenResponse
+        private sealed class AuthZenResponse
         {
             public string Decision { get; set; } = "deny";
             public string? Reason { get; set; }

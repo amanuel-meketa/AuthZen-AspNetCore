@@ -1,6 +1,6 @@
 ﻿namespace AuthZen.AspNetCore.AuthZen.AspNetCore.Configuration
 {
-    public class Options
+    public class AuthZenOptions
     {
         public string Url { get; set; } = default!;
     }
