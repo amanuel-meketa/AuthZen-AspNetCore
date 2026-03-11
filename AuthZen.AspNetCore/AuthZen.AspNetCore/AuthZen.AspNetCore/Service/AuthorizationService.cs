@@ -30,7 +30,7 @@ namespace AuthZen.AspNetCore.Service
 
             try
             {
-                var response = await _http.PostAsJsonAsync("/api/access/verify", request);
+                var response = await _http.PostAsJsonAsync("/access/check", request);
 
                 if (!response.IsSuccessStatusCode)
                 {
