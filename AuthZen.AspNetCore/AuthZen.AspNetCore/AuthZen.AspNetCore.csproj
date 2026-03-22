@@ -8,7 +8,7 @@
 
 		<!-- NuGet Package Metadata -->
 		<PackageId>AuthZen.AspNetCore</PackageId>
-		<Version>1.0.0</Version>
+		<Version>1.2.0</Version>
 		<Authors>Amanuel Eshete</Authors>
 		<Company>Debelo Software</Company>
 		<Product>AuthZen.AspNetCore</Product>
@@ -17,12 +17,20 @@
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
 
+		<!-- Release Notes -->
+		<PackageReleaseNotes>
+			Version 1.2
+
+			- **Enhancement:** Added `ClaimsPrincipalExtensions.GetUserId()` to simplify extracting the user ID from JWT claims.
+			- **Enhancement:** Updated `AuthorizationFilter` to use the new extension method, allowing optional fallback to the `AuthorizeResourceAttribute.UserId` if the claim is missing.
+			- **Improvement:** Makes user ID resolution more robust and reduces hard-coded dependencies.
+			- **Refactor:** Cleaner and more maintainable authorization filter logic.
+			- **Backwards Compatible:** Existing usage with `AuthorizeResourceAttribute.UserId` continues to work.
+		</PackageReleaseNotes>
+
 		<!-- Repository -->
 		<RepositoryUrl>https://github.com/amanuel-meketa/AuthZen-AspNetCore</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-
-		<!-- Release Notes -->
-		<PackageReleaseNotes>Initial release of AuthZen.AspNetCore library with HTTP client, authorization attribute, DI extension, and options support.</PackageReleaseNotes>
 
 		<!-- Build & Package -->
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -34,10 +42,9 @@
 	<ItemGroup>
 		<PackageReference Include="Microsoft.AspNetCore.Mvc.Abstractions" Version="2.3.9" />
 		<PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.3.9" />
-		<PackageReference Include="Microsoft.Extensions.Http" Version="10.0.4" />
-		<PackageReference Include="Microsoft.Extensions.Options" Version="10.0.4" />
+		<PackageReference Include="Microsoft.Extensions.Http" Version="10.0.5" />
+		<PackageReference Include="Microsoft.Extensions.Options" Version="10.0.5" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-		<PackageReference Include="System.Net.Http.Json" Version="10.0.4" />
 	</ItemGroup>
 
 </Project>

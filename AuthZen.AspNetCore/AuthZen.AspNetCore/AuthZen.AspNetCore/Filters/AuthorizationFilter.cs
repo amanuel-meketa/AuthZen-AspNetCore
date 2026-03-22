@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Logging;
 using System.Reflection;
-using System.Security.Claims;
 
 namespace AuthZen.AspNetCore.Filters
 {
@@ -24,7 +23,7 @@ namespace AuthZen.AspNetCore.Filters
         {
             var methodInfo = (context.ActionDescriptor as Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor)?.MethodInfo;
             var controllerType = context.Controller?.GetType()!;
-            var attribute = methodInfo?.GetCustomAttributes(typeof(AuthorizeResourceAttribute), true) .FirstOrDefault() as AuthorizeResourceAttribute;
+            var attribute = methodInfo?.GetCustomAttributes(typeof(AuthorizeResourceAttribute), true).FirstOrDefault() as AuthorizeResourceAttribute;
 
             if (attribute == null)
             {
@@ -32,8 +31,8 @@ namespace AuthZen.AspNetCore.Filters
                 return;
             }
 
-            // Resolve userId: attribute first, then JWT claim
-            string? userId = attribute.UserId ?? context.HttpContext.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            // Use extension method to get userId from claim or fallback to attribute
+            string? userId = context.HttpContext.User.GetUserId(attribute.UserId);
 
             if (string.IsNullOrWhiteSpace(userId))
             {
@@ -78,16 +77,12 @@ namespace AuthZen.AspNetCore.Filters
                 return;
             }
 
-            _logger.LogDebug( "Authorization granted for user {UserId} on resource {ResourceId} ({ResourceType}) with action {Action}.",
+               _logger.LogDebug( "Authorization granted for user {UserId} on resource {ResourceId} ({ResourceType}) with action {Action}.",
                 userId, resourceId, attribute.ResourceType, attribute.Action);
 
             await next();
         }
 
-        /// <summary>
-        /// Gets the first [Route] attribute template from the controller.
-        /// Returns the route template as resourceId (e.g., "approval-template").
-        /// </summary>
         private static string? GetControllerRoute(Type controllerType)
         {
             var routeAttr = controllerType.GetCustomAttribute<RouteAttribute>();
@@ -95,9 +90,7 @@ namespace AuthZen.AspNetCore.Filters
 
             var template = routeAttr.Template ?? string.Empty;
             if (template.Contains("[controller]"))
-            {
                 template = template.Replace("[controller]", controllerType.Name.Replace("Controller", "", StringComparison.OrdinalIgnoreCase));
-            }
 
             return template.Trim('/');
         }
