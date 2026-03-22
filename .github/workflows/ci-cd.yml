@@ -31,12 +31,9 @@ jobs:
       - name: Build
         run: dotnet build AuthZen.AspNetCore/AuthZen.AspNetCore/AuthZen.AspNetCore.csproj --configuration Release --no-restore
 
-      # 5️⃣ Pack NuGet package with dynamic version
+      # 5️⃣ Pack NuGet package (version comes from .csproj)
       - name: Pack NuGet package
-        run: |
-          VERSION=$(date +'%Y.%m.%d.%H%M%S')
-          echo "Packing version $VERSION"
-          dotnet pack AuthZen.AspNetCore/AuthZen.AspNetCore/AuthZen.AspNetCore.csproj --configuration Release --no-build --output ./nupkg /p:PackageVersion=$VERSION
+        run: dotnet pack AuthZen.AspNetCore/AuthZen.AspNetCore/AuthZen.AspNetCore.csproj --configuration Release --no-build --output ./nupkg
 
       # 6️⃣ Publish to NuGet
       - name: Publish to NuGet
