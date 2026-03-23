@@ -9,21 +9,21 @@
 
         public sealed class CheckAccessDto
         {
-            public SubjectDto Subject { get; set; } = default!;
-            public ResourceDto Resource { get; set; } = default!;
+            public SubjectDto? Subject { get; set; }
+            public ResourceDto? Resource { get; set; } 
             public string Action { get; set; } = default!;
         }
 
         public sealed class SubjectDto
         {
             public string Type { get; set; } = "user";
-            public string Id { get; set; } = default!;
+            public string? Id { get; set; }
         }
 
         public sealed class ResourceDto
         {
-            public string Type { get; set; } = default!;
-            public string Id { get; set; } = default!;
+            public string? Type { get; set; }
+            public string? Id { get; set; }
         }
 
         public sealed class AuthZenDecisionResponseDto

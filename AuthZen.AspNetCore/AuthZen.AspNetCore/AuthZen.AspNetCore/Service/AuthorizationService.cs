@@ -34,8 +34,7 @@ namespace AuthZen.AspNetCore.Service
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    _logger.LogWarning("AuthZen returned non-success status {Status} for user {UserId}",
-                        response.StatusCode, check.Subject.Id);
+                    _logger.LogWarning("AuthZen returned non-success status {Status} for user {UserId}", response.StatusCode, check.Subject.Id);
 
                     return new AuthZenDecisionResponseDto
                     {
@@ -44,15 +43,9 @@ namespace AuthZen.AspNetCore.Service
                     };
                 }
 
-                var result = await response.Content.ReadFromJsonAsync<AuthZenResponse>();
+                var result = await response.Content.ReadFromJsonAsync<AuthZenDecisionResponseDto>();
 
-                return new AuthZenDecisionResponseDto
-                {
-                    Decision = result?.Decision ?? "deny",
-                    Reason = result?.Reason,
-                    Obligations = result?.Obligations ?? new(),
-                    Advice = result?.Advice ?? new()
-                };
+                return result;
             }
             catch (Exception ex)
             {
@@ -63,14 +56,6 @@ namespace AuthZen.AspNetCore.Service
                     Reason = $"AuthZen request failed: {ex.Message}"
                 };
             }
-        }
-
-        private sealed class AuthZenResponse
-        {
-            public string Decision { get; set; } = "deny";
-            public string? Reason { get; set; }
-            public List<object> Obligations { get; set; } = new();
-            public List<object> Advice { get; set; } = new();
         }
     }
 }
