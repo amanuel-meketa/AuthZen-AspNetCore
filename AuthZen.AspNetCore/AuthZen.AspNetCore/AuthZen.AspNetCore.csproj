@@ -8,7 +8,7 @@
 
 		<!-- NuGet Package Metadata -->
 		<PackageId>AuthZen.AspNetCore</PackageId>
-		<Version>1.5.0</Version>
+		<Version>1.6.</Version>
 		<Authors>Amanuel Eshete</Authors>
 		<Company>Debelo Software</Company>
 		<Product>AuthZen.AspNetCore</Product>
@@ -19,15 +19,15 @@
 
 		<!-- Release Notes -->
 		<PackageReleaseNotes>
-			Version 1.5
+			Version 1.6
 
-			- Removed constructor parameters with nullable enums (Resource? and Action?) to fix C# attribute limitations.
-			- Made ResourceType and Action settable via named properties instead of constructor arguments.
-			- Retains optional CustomAction, UserId, and ResourceId properties for flexible authorization scenarios.
-			- Allows usage like [AuthorizeResource], [AuthorizeResource(ResourceType = Resource.Template, Action = Action.View)], or [AuthorizeResource(CustomAction = "can_delegate")] without compile-time errors.
-			- Fixes compilation issues with attribute usage in controllers.
+			- Removed constructor parameters with nullable enums (`Resource?` and `Action?`) to comply with C# attribute restrictions.
+			- Made `ResourceType` and `Action` settable via named properties instead of constructor arguments.
+			- Retains optional `CustomAction`, `UserId`, and `ResourceId` properties for flexible authorization scenarios.
+			- Supports usage like `[AuthorizeResource]`, `[AuthorizeResource(ResourceType = Resource.Template, Action = Action.View)]`, or `[AuthorizeResource(CustomAction = "can_delegate")]` without compile-time errors.
+			- Fixes compilation issues when applying the attribute in controllers.
 		</PackageReleaseNotes>
-
+		
 		<!-- Repository -->
 		<RepositoryUrl>https://github.com/amanuel-meketa/AuthZen-AspNetCore</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>

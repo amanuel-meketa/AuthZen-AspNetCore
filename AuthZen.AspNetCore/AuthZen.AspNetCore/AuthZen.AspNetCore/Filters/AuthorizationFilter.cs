@@ -45,7 +45,6 @@ namespace AuthZen.AspNetCore.Filters
 
             // --- Resolve ResourceId: Attribute -> Controller Route ---
             string? resourceId = !string.IsNullOrWhiteSpace(attribute.ResourceId) ? attribute.ResourceId : GetControllerRoute(controllerType);
-
             if (string.IsNullOrWhiteSpace(resourceId))
             {
                 _logger.LogWarning($"Authorization failed: resourceId missing for controller {controllerType.Name}");
@@ -53,12 +52,23 @@ namespace AuthZen.AspNetCore.Filters
                 return;
             }
 
-            // --- Resolve ResourceType: Attribute -> Mapper -> null ---
-            var resourceType = attribute.ResourceType ?? DefaultResourceMapper.Map(resourceId);
+            // --- Resolve ResourceType ---
+            var resourceType = attribute.ResourceType != default ? attribute.ResourceType : DefaultResourceMapper.Map(resourceId);
 
-            // --- Resolve Action: CustomAction -> Enum -> HTTP method ---
-            var action = attribute.CustomAction ?? (attribute.Action.HasValue ? attribute.Action.Value.ToAuthZenAction()
-                             : ResolveAction(null, context.HttpContext.Request.Method, resourceId));
+            // --- Resolve Action ---
+            string action;
+            if (!string.IsNullOrWhiteSpace(attribute.CustomAction))
+            {
+                action = attribute.CustomAction;
+            }
+            else if (attribute.Action != default(Action))
+            {
+                action = attribute.Action.ToAuthZenAction();
+            }
+            else
+            {
+                action = ResolveAction(null, context.HttpContext.Request.Method, resourceId);
+            }
 
             // --- Build authorization request ---
             var checkRequest = new IAuthorizationService.CheckAccessDto
@@ -100,9 +110,6 @@ namespace AuthZen.AspNetCore.Filters
 
         private static string ResolveAction(Action? attributeAction, string httpMethod, string? routeTemplate)
         {
-            if (attributeAction.HasValue)
-                return attributeAction.Value.ToAuthZenAction();
-
             // Map HTTP method to default AuthZen actions
             return httpMethod.ToUpper() switch
             {
