@@ -6,21 +6,14 @@ namespace AuthZen.AspNetCore.AuthZen.AspNetCore.Attributes
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
     public class AuthorizeResourceAttribute : Attribute
     {
-        // Allow setting in constructor
-        public Resource? ResourceType { get; private set; }
-        public Action? Action { get; private set; }
+        // Constructor takes no parameters
+        public AuthorizeResourceAttribute() { }
 
-        // Optional custom action string
-        public string? CustomAction { get; set; }
-
+        // Optional properties (must be set by name)
+        public Resource ResourceType { get; set; }    // enum type
+        public Action Action { get; set; }           // enum type
+        public string? CustomAction { get; set; }    // string fallback
         public string? UserId { get; set; }
         public string? ResourceId { get; set; }
-
-        // Constructor with optional parameters
-        public AuthorizeResourceAttribute(Resource? resourceType = null, Action? action = null)
-        {
-            ResourceType = resourceType;
-            Action = action;
-        }
     }
 }
